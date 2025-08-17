@@ -25,10 +25,9 @@ Before you begin, ensure you have the following:
 
 1.  **Clone the repository:**
     ```bash
-    git clone https://github.com/your-username/crypto-forensics-tools.git
+    git clone https://github.com/poorolive51/crypto-forensics-tools.git
     cd crypto-forensics-tools
     ```
-    *(Note: You will need to create a new GitHub repository and push this code to it after I've finished creating the files.)*
 
 2.  **Create a virtual environment (recommended):**
     ```bash
@@ -48,11 +47,11 @@ Before you begin, ensure you have the following:
     YOUTUBE_API_KEY="YOUR_YOUTUBE_API_KEY"
     TRONSCAN_API_KEY="YOUR_TRONSCAN_API_KEY"
     ```
-    Replace `"YOUR_YOUTUBE_API_KEY"` and `"YOUR_TRONSCAN_API_KEY"` with your actual API keys.
+    **Important:** Remember to never commit your `.env` file to version control, as it contains sensitive API keys.
 
 ## Project Workflow and Usage
 
-This project follows a three-step process to identify and analyze scammer activity:
+This project follows a three-step process to identify and analyze scammer activity. All scripts now use Python's `logging` module for output, providing more structured information.
 
 ### Step 1: Search YouTube for Scammer Comments with Seed Phrases
 
@@ -60,17 +59,20 @@ The `youtube_seed_phrase_scanner.py` script searches YouTube for videos related 
 
 **How to run:**
 ```bash
-python youtube_seed_phrase_scanner.py
+python youtube_seed_phrase_scanner.py --search_terms "crypto tron" "ethereum wallet" --max_results_per_term 10 --output_filename my_mnemonics.json
 ```
+*   Use `--search_terms` followed by a space-separated list of terms (e.g., `"term1" "term2"`).
+*   Use `--max_results_per_term` to specify the number of videos to check per search term (default: 5).
+*   Use `--output_filename` to specify the JSON file to save results (default: `mnemonics.json`).
 
 **What it does:**
-*   Searches YouTube for a predefined set of crypto-related search terms (e.g., "crypto tron", "okx wallet crypto", "ethereum wallet").
-*   Retrieves comments from the top 5 videos for each search term.
+*   Searches YouTube for specified search terms.
+*   Retrieves comments from the top `max_results_per_term` videos for each search term.
 *   Uses advanced pattern matching to identify 12-word seed phrases within the comments.
-*   Outputs unique seed phrases along with their source (author, video ID, timestamp) to `mnemonics.json`.
+*   Outputs unique seed phrases along with their source (author, video ID, timestamp) to the specified JSON file.
 
 **Output:**
-*   `mnemonics.json`: A JSON file containing a list of unique seed phrases found, along with metadata about where they were found.
+*   A JSON file (default: `mnemonics.json`) containing a list of unique seed phrases found, along with metadata about where they were found.
 
 ### Step 2: Convert Seed Phrases to Wallet Addresses
 
@@ -78,16 +80,18 @@ The `tron_address_generator.py` script takes the extracted seed phrases and conv
 
 **How to run:**
 ```bash
-python tron_address_generator.py
+python tron_address_generator.py --mnemonics_file my_mnemonics.json --output_file my_tron_addresses.txt
 ```
+*   Use `--mnemonics_file` to specify the input JSON file (default: `mnemonics.json`).
+*   Use `--output_file` to specify the plain text file to save addresses (default: `tron_addresses.txt`).
 
 **What it does:**
-*   Reads seed phrases from `mnemonics.json`.
+*   Reads seed phrases from the specified JSON file.
 *   Uses the `bip-utils` library to derive TRON private keys and then TRON addresses from these seed phrases (using the BIP44 derivation path: `m/44'/195'/0'/0/0`).
-*   Writes all unique TRON addresses to `tron_addresses.txt`.
+*   Writes all unique TRON addresses to the specified plain text file.
 
 **Output:**
-*   `tron_addresses.txt`: A plain text file, with each line containing a unique TRON wallet address.
+*   A plain text file (default: `tron_addresses.txt`), with each line containing a unique TRON wallet address.
 
 ### Step 3: Analyze Transaction Activity
 
@@ -95,9 +99,9 @@ The `tron_transaction_analyzer.py` script fetches and visualizes the transaction
 
 **How to run:**
 ```bash
-python tron_transaction_analyzer.py
+python tron_transaction_analyzer.py --addresses_file tron_addresses.txt
 ```
-The script will prompt you to enter the filename containing TRON addresses (e.g., `tron_addresses.txt`).
+*   Use `--addresses_file` to specify the input file containing TRON addresses (e.g., `tron_addresses.txt`). This argument is required.
 
 **What it does:**
 *   Connects to the Tronscan API (with a built-in rate limiter to avoid throttling).
@@ -105,7 +109,7 @@ The script will prompt you to enter the filename containing TRON addresses (e.g.
 *   Generates an interactive Plotly scatter plot visualizing incoming and outgoing USDT transactions over time for each wallet. The size of the points on the plot is proportional to the transaction amount.
 
 **Output:**
-*   An interactive HTML plot displayed in your default web browser, showing the transaction timeline.
+*   An interactive HTML plot saved as `usdt_transactions_timeline.html` in the current directory, which you can open in your web browser.
 
 ## Next Steps
 
