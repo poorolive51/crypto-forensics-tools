@@ -1,0 +1,7 @@
+bip-utils
+tronpy
+requests
+python-dotenv
+pandas
+plotly
+google-api-python-client
